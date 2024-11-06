@@ -23,7 +23,7 @@ public:
 
 		try {
 			vShaderFile.open(vertexPath);
-			vShaderFile.open(fragmentPath);
+			fShaderFile.open(fragmentPath);
 			stringstream vShaderStream, fShaderStream;
 
 			vShaderStream << vShaderFile.rdbuf();
@@ -35,7 +35,7 @@ public:
 			fragmentCode = fShaderStream.str();
 		}
 		catch(ifstream::failure e) {
-			cout << "ERROR::SHADER::FILE_READ_ERROR" << endl;
+			cerr << "ERROR::SHADER::FILE_READ_ERROR\n" << e.what() << endl;
 		}
 		const char* vShaderCode = vertexCode.c_str();
 		const char* fShaderCode = fragmentCode.c_str();
@@ -53,7 +53,7 @@ public:
 			cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << endl;
 		}
 
-		fragment = glCreateShader(GL_VERTEX_SHADER);
+		fragment = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragment, 1, &fShaderCode, NULL);
 		glCompileShader(fragment);
 		glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
@@ -69,7 +69,7 @@ public:
 		glGetProgramiv(ID, GL_LINK_STATUS, &success);
 		if (!success) {
 			glGetProgramInfoLog(ID, 512, NULL, infoLog);
-			cout << "ERROR::SHADER:PROGRAM::LINKING_FAILED\N" << infoLog << endl;
+			cout << "ERROR::SHADER:PROGRAM::LINKING_FAILED\n" << infoLog << endl;
 		}
 
 		glDeleteShader(vertex);

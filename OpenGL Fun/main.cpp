@@ -6,33 +6,15 @@
 #include <Windows.h>
 using namespace std;
 
+#include "Shader.h"
+
 //extern "C" {
 //	_declspec(dllexport) DWORD NvOptimusEnablement = 1;
 //}
 
-const char* vertexShaderSource =
-"#version 330 core\n\
-layout (location = 0) in vec3 aPos;\n\
-layout (location = 1) in vec3 aColor;\n\
-out vec3 vertColor;\n\
-\n\
-void main() {\n\
-	gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0f);\n\
-	vertColor = aColor;\n\
-}";
-
-const char* fragmentShaderSource =
-"#version 330 core\n\
-in vec3 vertColor;\n\
-\n\
-void main() {\n\
-	gl_FragColor = vec4(vertColor, 0.0f);\n\
-}";
-
 float r = 1.0f;
 float g = 1.0f;
 float b = 1.0f;
-unsigned int shaderProgram;
 unsigned int VAO;
 bool mode;
 
@@ -54,46 +36,46 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
 //	}
 //}
 
-void initGL(void) {
-	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-
-	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-
-	int vertexSuccess;
-	int fragmentSuccess;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &vertexSuccess);
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &fragmentSuccess);
-	if (!vertexSuccess) {
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << endl;
-	}
-	else if (!fragmentSuccess) {
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << endl;
-	}
-
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	int programSuccess;
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &programSuccess);
-	if (!programSuccess) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-	}
-
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-}
+//void initGL(void) {
+//	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+//	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+//	glCompileShader(vertexShader);
+//
+//	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+//	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+//	glCompileShader(fragmentShader);
+//
+//	int vertexSuccess;
+//	int fragmentSuccess;
+//	char infoLog[512];
+//	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &vertexSuccess);
+//	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &fragmentSuccess);
+//	if (!vertexSuccess) {
+//		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+//		cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << endl;
+//	}
+//	else if (!fragmentSuccess) {
+//		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+//		cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << endl;
+//	}
+//
+//	shaderProgram = glCreateProgram();
+//	glAttachShader(shaderProgram, vertexShader);
+//	glAttachShader(shaderProgram, fragmentShader);
+//	glLinkProgram(shaderProgram);
+//
+//	int programSuccess;
+//	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &programSuccess);
+//	if (!programSuccess) {
+//		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+//	}
+//
+//	glGenVertexArrays(1, &VAO);
+//	glBindVertexArray(VAO);
+//
+//	glDeleteShader(vertexShader);
+//	glDeleteShader(fragmentShader);
+//}
 
 void drawTriangle(void) {
 	float vertices[] = {
@@ -101,8 +83,6 @@ void drawTriangle(void) {
 		 0.0,   0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
 		 0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f
 	};
-
-	initGL();
 
 	unsigned int VBO;
 	glGenBuffers(1, &VBO);
@@ -127,8 +107,6 @@ void drawRectangle(void) {
 		0, 1, 2,
 		0, 2, 3
 	};
-
-	initGL();
 
 	unsigned int VBO;
 	glGenBuffers(1, &VBO);
@@ -194,6 +172,9 @@ int main(void) {
 	cout << "OpenGL " << glGetString(GL_VERSION) << endl;
 	cout << "GPU: " << glGetString(GL_RENDERER) << endl;
 
+	Shader shaders("shader.vert", "shader.frag");
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
 	drawTriangle();
 
 	mode = 0;
@@ -201,15 +182,12 @@ int main(void) {
 		glClearColor(r, g, b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		/*float timeVal = glfwGetTime();
-		float gVal = (sin(timeVal) / 2.0f) + 0.5f;
-		int vertexColorLocation = glGetUniformLocation(shaderProgram, "vertColor");*/
-		glUseProgram(shaderProgram);
-		//glUniform4f(vertexColorLocation, 0.0f, gVal, 0.0f, 1.0f);
+		//glUseProgram(shaderProgram);
+		shaders.use();
 		glBindVertexArray(VAO);
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		mode ? glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0) : glDrawArrays(GL_TRIANGLES, 0, 3);
-		glBindVertexArray(0);
+		//glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
